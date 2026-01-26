@@ -25,6 +25,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
+// MODIFIED: This now reads your Railway Variable or defaults to localhost for development
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 function App() {
@@ -59,16 +60,23 @@ function App() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const response = await fetch(`${API_BASE_URL}/datasets/upload/`, {
+
+      // MODIFIED: Removed 'upload/' because Django DefaultRouter uses the base path for POST
+      const response = await fetch(`${API_BASE_URL}/datasets/`, {
         method: 'POST',
         body: formData,
       });
+
       if (response.ok) {
         const data = await response.json();
         alert('✅ File uploaded successfully!');
         await loadDatasets();
         setCurrentDataset(data);
         setCurrentPage(1);
+      } else {
+        // Added error handling to see why the server rejected it
+        const errorData = await response.json();
+        alert(`❌ Server Error: ${JSON.stringify(errorData)}`);
       }
     } catch (error) {
       alert(`❌ Upload failed: ${error.message}`);
@@ -116,7 +124,7 @@ function App() {
     }
   };
 
-  // --- CHART LOGIC (REPLICATING DESKTOP VISUALS) ---
+  // --- CHART LOGIC ---
 
   const getBarChartData = () => {
     if (!currentDataset || !currentDataset.summary) return null;
@@ -141,7 +149,6 @@ function App() {
         backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
         borderWidth: 2,
         borderColor: '#ffffff',
-        // REPLICATES DESKTOP "EXPLODED" LOOK:
         spacing: 5, 
         hoverOffset: 15 
       }],
@@ -153,15 +160,14 @@ function App() {
     maintainAspectRatio: true,
     plugins: {
       legend: { position: 'top', labels: { font: { weight: 'bold' } } },
-      // REPLICATES DESKTOP WHITE PERCENTAGE LABELS:
       datalabels: {
         color: '#ffffff',
         font: { weight: 'bold', size: 14 },
         formatter: (value, ctx) => {
           let sum = 0;
           let dataArr = ctx.chart.data.datasets[0].data;
-          dataArr.map(data => sum += data);
-          return (value * 100 / sum).toFixed(1) + "%";
+          dataArr.forEach(data => sum += data);
+          return sum > 0 ? (value * 100 / sum).toFixed(1) + "%" : "0%";
         },
       }
     },
@@ -193,7 +199,7 @@ function App() {
               <select className="dataset-select" value={selectedDatasetId} onChange={handleDatasetSelect}>
                 <option value="">{datasets.length === 0 ? 'No datasets available' : 'Select a dataset...'}</option>
                 {datasets.map((ds) => (
-                  <option key={ds.id} value={ds.id}>{ds.filename} - {ds.upload_date.substring(0, 10)}</option>
+                  <option key={ds.id} value={ds.id}>{ds.filename} - {ds.upload_date?.substring(0, 10)}</option>
                 ))}
               </select>
             </div>

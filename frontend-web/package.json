@@ -10,7 +10,8 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "serve": "^14.2.1"
+    "serve": "^14.2.1",
+    "yaml": "^2.8.2"
   },
   "scripts": {
     "start": "serve -s build -l $PORT",

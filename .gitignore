@@ -1,0 +1,16 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+venv/
+env/
+db.sqlite3
+
+# Node
+node_modules/
+package-lock.json
+build/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db

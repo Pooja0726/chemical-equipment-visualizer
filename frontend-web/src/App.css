@@ -1,0 +1,346 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f8fbff;
+}
+
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ========== SIDEBAR ========== */
+.sidebar {
+  width: 260px;
+  background: linear-gradient(180deg, #f0f8ff 0%, #e6f2ff 100%);
+  border-right: 1px solid #d0e8f2;
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  color: #2980b9;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  padding: 30px 10px;
+  background: rgba(255, 255, 255, 0.5);
+  border-bottom: 2px solid #3498db;
+}
+
+.nav-button {
+  background: transparent;
+  color: #2c3e50;
+  text-align: left;
+  padding: 15px 20px;
+  border: none;
+  border-left: 4px solid transparent;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 60px;
+  margin: 5px 0;
+}
+
+.nav-button:hover {
+  background: rgba(173, 216, 230, 0.3);
+  border-left: 4px solid #3498db;
+}
+
+.nav-button.active {
+  background: rgba(173, 216, 230, 0.5);
+  border-left: 4px solid #2980b9;
+  color: #2980b9;
+  font-weight: bold;
+}
+
+.footer {
+  margin-top: auto;
+  color: #7f8c8d;
+  font-size: 11px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* ========== CONTENT AREA ========== */
+.content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background: #f8fbff;
+}
+
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 25px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+/* ========== CARDS ========== */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #34495e;
+  margin-bottom: 15px;
+}
+
+.card-description {
+  color: #7f8c8d;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+/* ========== UPLOAD BUTTON ========== */
+.upload-button {
+  display: inline-block;
+  background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  min-height: 55px;
+  text-align: center;
+}
+
+.upload-button:hover {
+  background: linear-gradient(90deg, #2980b9 0%, #1f5f8b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* ========== SELECT DROPDOWN ========== */
+.select-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.select-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c3e50;
+  min-width: 80px;
+}
+
+.dataset-select {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #d0e8f2;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 45px;
+  transition: border 0.3s ease;
+}
+
+.dataset-select:hover {
+  border: 2px solid #3498db;
+}
+
+.dataset-select:focus {
+  outline: none;
+  border: 2px solid #2980b9;
+}
+
+/* ========== STATS CARDS ========== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  border-radius: 12px;
+  padding: 25px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card-blue {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+.stat-card-purple {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+}
+
+.stat-card-red {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.stat-card-orange {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.stat-title {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.stat-value {
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* ========== CHARTS ========== */
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.chart-wrapper {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  min-height: 400px;
+}
+
+/* ========== TABLE ========== */
+.table-container {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #d0e8f2;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.data-table thead {
+  background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+}
+
+.data-table th {
+  color: white;
+  padding: 15px;
+  text-align: left;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid #e8f4f8;
+}
+
+.data-table tbody tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.data-table tbody tr:hover {
+  background: #d0e8f2;
+}
+
+.data-table td {
+  padding: 12px 15px;
+  font-size: 13px;
+  color: #2c3e50;
+}
+
+/* ========== DOWNLOAD BUTTON ========== */
+.download-button {
+  background: linear-gradient(90deg, #27ae60 0%, #229954 100%);
+  color: white;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  min-height: 50px;
+  transition: all 0.3s ease;
+}
+
+.download-button:hover {
+  background: linear-gradient(90deg, #229954 0%, #1e8449 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+}
+
+/* ========== EMPTY STATE ========== */
+.empty-state {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 16px;
+  padding: 60px 20px;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .logo {
+    min-width: 150px;
+  }
+
+  .nav-button {
+    min-width: 150px;
+  }
+
+  .content {
+    padding: 20px;
+  }
+
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-API_BASE_URL = 'http://localhost:8000/api'
+API_BASE_URL = 'https://chemical-equipment-visualizer-production-999d.up.railway.app/api'
 
 
 class ChartWidget(QWidget):

@@ -17,7 +17,12 @@ class DatasetViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        """
+        Determines which serializer to use based on the action.
+        Using DatasetDetailSerializer for 'upload' bypasses the 400 error 
+        caused by missing 'filename' and 'row_count' in the request body.
+        """
+        if self.action in ['retrieve', 'upload']:
             return DatasetDetailSerializer
         return DatasetSerializer
     
@@ -72,7 +77,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
                 old.delete()
             
             # Step 4: Creating dataset in database
-            # This direct creation bypasses the Serializer "required field" errors
+            # Direct creation bypasses Serializer validation errors
             dataset = Dataset.objects.create(
                 filename=file.name,
                 row_count=len(df)
@@ -123,7 +128,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def statistics(self, request):
-        """Get overall statistics"""
+        """Get overall statistics across all datasets"""
         total_datasets = Dataset.objects.count()
         total_records = EquipmentRecord.objects.count()
         

@@ -61,11 +61,11 @@ function App() {
       const formData = new FormData();
       formData.append('file', file);
 
-      // MODIFIED: Removed 'upload/' because Django DefaultRouter uses the base path for POST
+      // FIXED: Pointing to the specific /upload/ endpoint to match ViewSet @action
       const response = await fetch(`${API_BASE_URL}/datasets/upload/`, {
-      method: 'POST',
-      body: formData,
-    });
+        method: 'POST',
+        body: formData,
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -74,7 +74,6 @@ function App() {
         setCurrentDataset(data);
         setCurrentPage(1);
       } else {
-        // Added error handling to see why the server rejected it
         const errorData = await response.json();
         alert(`❌ Server Error: ${JSON.stringify(errorData)}`);
       }
@@ -117,6 +116,7 @@ function App() {
         a.download = `equipment_report_${currentDataset.id}.pdf`;
         document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       }
     } catch (error) {

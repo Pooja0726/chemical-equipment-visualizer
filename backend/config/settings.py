@@ -9,11 +9,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-chang
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 # Ensure the Railway domain is exactly as provided by their dashboard
-ALLOWED_HOSTS = [
-    'chemical-equipment-visualizer-production-999d.up.railway.app', 
-    'localhost', 
-    '127.0.0.1'
-]
+ALLOWED_HOSTS = ['*']
 
 # This tells Django to trust Railway's HTTPS proxy to prevent redirect loops
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

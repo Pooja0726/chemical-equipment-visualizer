@@ -62,10 +62,10 @@ function App() {
       formData.append('file', file);
 
       // MODIFIED: Removed 'upload/' because Django DefaultRouter uses the base path for POST
-      const response = await fetch(`${API_BASE_URL}/datasets/`, {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await fetch(`${API_BASE_URL}/datasets/upload/`, {
+      method: 'POST',
+      body: formData,
+    });
 
       if (response.ok) {
         const data = await response.json();

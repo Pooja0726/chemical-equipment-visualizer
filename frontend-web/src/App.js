@@ -61,7 +61,6 @@ function App() {
       const formData = new FormData();
       formData.append('file', file);
 
-      // FIXED: Pointing to the specific /upload/ endpoint to match ViewSet @action
       const response = await fetch(`${API_BASE_URL}/datasets/upload/`, {
         method: 'POST',
         body: formData,
@@ -155,11 +154,41 @@ function App() {
     };
   };
 
-  const chartOptions = {
+  // Base options for shared styling
+  const baseChartOptions = {
     responsive: true,
     maintainAspectRatio: true,
     plugins: {
       legend: { position: 'top', labels: { font: { weight: 'bold' } } },
+      title: {
+        display: true,
+        font: { size: 18, weight: 'bold' },
+        padding: { top: 10, bottom: 20 },
+        color: '#000000'
+      }
+    },
+  };
+
+  // Custom options for Bar Chart (Heading + Normal Values)
+  const barOptions = {
+    ...baseChartOptions,
+    plugins: {
+      ...baseChartOptions.plugins,
+      title: { ...baseChartOptions.plugins.title, text: 'Average Parameter Values' },
+      datalabels: {
+        color: '#ffffff',
+        font: { weight: 'bold', size: 14 },
+        formatter: (value) => value.toFixed(1), // Normal values
+      }
+    }
+  };
+
+  // Custom options for Pie Chart (Heading + Percentages)
+  const pieOptions = {
+    ...baseChartOptions,
+    plugins: {
+      ...baseChartOptions.plugins,
+      title: { ...baseChartOptions.plugins.title, text: 'Equipment Type Distribution' },
       datalabels: {
         color: '#ffffff',
         font: { weight: 'bold', size: 14 },
@@ -170,7 +199,7 @@ function App() {
           return sum > 0 ? (value * 100 / sum).toFixed(1) + "%" : "0%";
         },
       }
-    },
+    }
   };
 
   return (
@@ -189,10 +218,17 @@ function App() {
             <h1 className="page-title">Upload & Select Dataset</h1>
             <div className="card">
               <h2 className="card-title">📁 Upload New Dataset</h2>
-              <label className="upload-button">
+              <button className="upload-button" onClick={() => document.getElementById('file-input').click()}>
                 {uploading ? '⏳ Uploading...' : '📤 Choose CSV File'}
-                <input type="file" accept=".csv" onChange={handleFileUpload} disabled={uploading} style={{ display: 'none' }} />
-              </label>
+              </button>
+              <input 
+                id="file-input"
+                type="file" 
+                accept=".csv" 
+                onChange={handleFileUpload} 
+                disabled={uploading} 
+                style={{ display: 'none' }} 
+              />
             </div>
             <div className="card">
               <h2 className="card-title">📊 Select Existing Dataset</h2>
@@ -233,10 +269,10 @@ function App() {
                   <h2 className="card-title">📈 Visual Analytics</h2>
                   <div className="charts-container">
                     <div className="chart-wrapper">
-                      {getBarChartData() && <Bar data={getBarChartData()} options={chartOptions} />}
+                      {getBarChartData() && <Bar data={getBarChartData()} options={barOptions} />}
                     </div>
                     <div className="chart-wrapper">
-                      {getPieChartData() && <Pie data={getPieChartData()} options={chartOptions} />}
+                      {getPieChartData() && <Pie data={getPieChartData()} options={pieOptions} />}
                     </div>
                   </div>
                 </div>

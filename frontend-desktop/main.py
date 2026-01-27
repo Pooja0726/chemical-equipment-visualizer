@@ -177,7 +177,7 @@ class MainWindow(QMainWindow):
         sidebar_layout.setSpacing(5)
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
         
-        logo_label = QLabel('🧪 Equipment\nVisualizer')
+        logo_label = QLabel('🧪 Chemical Equipment\nParameter Visualizer')
         logo_label.setAlignment(Qt.AlignCenter)
         logo_label.setStyleSheet('''
             color: #2980b9;

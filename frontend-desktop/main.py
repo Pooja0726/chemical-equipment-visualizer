@@ -164,7 +164,7 @@ class MainWindow(QMainWindow):
         
         # ========== SIDEBAR ==========
         sidebar = QFrame()
-        sidebar.setFixedWidth(260)
+        sidebar.setFixedWidth(300)
         sidebar.setStyleSheet('''
             QFrame {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -181,9 +181,9 @@ class MainWindow(QMainWindow):
         logo_label.setAlignment(Qt.AlignCenter)
         logo_label.setStyleSheet('''
             color: #2980b9;
-            font-size: 35px;
+            font-size: 22px;
             font-weight: bold;
-            padding: 30px 10px;
+            padding: 20px 0px;
             background: rgba(255, 255, 255, 0.5);
             border-bottom: 2px solid #3498db;
         ''')

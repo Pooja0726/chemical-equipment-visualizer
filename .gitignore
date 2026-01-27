@@ -5,6 +5,12 @@ venv/
 env/
 db.sqlite3
 
+# PyInstaller
+dist/
+build/
+*.spec
+.env
+
 # Node
 node_modules/
 package-lock.json

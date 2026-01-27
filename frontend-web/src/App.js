@@ -205,7 +205,7 @@ function App() {
   return (
     <div className="app">
       <div className="sidebar">
-        <div className="logo">🧪 Chemical Equipment<br />Parameter Visualizer</div>
+        <div className="logo">🧪 Chemical Equipment<br />Parameter<br /> Visualizer</div>
         <button className={`nav-button ${currentPage === 0 ? 'active' : ''}`} onClick={() => setCurrentPage(0)}>📤 Upload Dataset</button>
         <button className={`nav-button ${currentPage === 1 ? 'active' : ''}`} onClick={() => setCurrentPage(1)}>📊 Analyze Report</button>
         <button className={`nav-button ${currentPage === 2 ? 'active' : ''}`} onClick={() => setCurrentPage(2)}>📋 Equipment Report</button>

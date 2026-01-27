@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem,
                              QLabel, QFileDialog, QMessageBox, QComboBox, QGroupBox,
                              QGridLayout, QScrollArea, QStackedWidget, QFrame,
-                             QSizePolicy, QHeaderView)
+                             QSizePolicy, QHeaderView, QDialog, QLineEdit)
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont, QIcon, QPalette, QColor
 import matplotlib.pyplot as plt
@@ -13,6 +13,37 @@ from matplotlib.figure import Figure
 
 API_BASE_URL = 'https://chemical-equipment-visualizer-production-999d.up.railway.app/api'
 
+class LoginDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Login Required")
+        self.setFixedWidth(300)
+        layout = QVBoxLayout(self)
+        
+        self.email = QLineEdit(self)
+        self.password = QLineEdit(self)
+        self.password.setEchoMode(QLineEdit.Password)
+        self.login_btn = QPushButton("Login", self)
+        self.login_btn.clicked.connect(self.do_login)
+        
+        layout.addWidget(QLabel("Email:"))
+        layout.addWidget(self.email)
+        layout.addWidget(QLabel("Password:"))
+        layout.addWidget(self.password)
+        layout.addWidget(self.login_btn)
+        self.token = None
+
+    def do_login(self):
+        try:
+            resp = requests.post(f"{API_BASE_URL}/login/", 
+                                 data={'username': self.email.text(), 'password': self.password.text()})
+            if resp.status_code == 200:
+                self.token = resp.json()['token']
+                self.accept()
+            else:
+                QMessageBox.warning(self, "Error", "Invalid Login")
+        except Exception as e:
+            QMessageBox.critical(self, "Connection Error", f"Could not connect to server: {str(e)}")
 
 class ChartWidget(QWidget):
     """Widget for displaying matplotlib charts"""
@@ -143,13 +174,18 @@ class StatCard(QFrame):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, token):
         super().__init__()
+        self.token = token # Store the auth token
         self.datasets = []
         self.current_dataset = None
         self.init_ui()
         self.load_datasets()
     
+    def get_headers(self):
+        """Helper to return auth headers"""
+        return {'Authorization': f'Token {self.token}'}
+
     def init_ui(self):
         """Initialize UI"""
         self.setWindowTitle('Chemical Equipment Parameter Visualizer')
@@ -508,7 +544,7 @@ class MainWindow(QMainWindow):
     def load_datasets(self):
         """Load datasets from API"""
         try:
-            response = requests.get(f'{API_BASE_URL}/datasets/')
+            response = requests.get(f'{API_BASE_URL}/datasets/', headers=self.get_headers())
             response.raise_for_status()
             data = response.json()
             
@@ -561,7 +597,7 @@ class MainWindow(QMainWindow):
             with open(filepath, 'rb') as f:
                 file_content = f.read()
                 files = {'file': (filepath.split('\\')[-1], file_content, 'text/csv')}
-                response = requests.post(f'{API_BASE_URL}/datasets/upload/', files=files)
+                response = requests.post(f'{API_BASE_URL}/datasets/upload/', files=files, headers=self.get_headers())
                 
                 if response.status_code == 201:
                     data = response.json()
@@ -598,7 +634,7 @@ class MainWindow(QMainWindow):
             return
         
         try:
-            response = requests.get(f'{API_BASE_URL}/datasets/{dataset_id}/')
+            response = requests.get(f'{API_BASE_URL}/datasets/{dataset_id}/', headers=self.get_headers())
             
             if response.status_code == 404:
                 QMessageBox.warning(
@@ -701,11 +737,7 @@ class MainWindow(QMainWindow):
             print(f"{'='*60}")
             
             url = f'{API_BASE_URL}/datasets/{dataset_id}/download_pdf/'
-            print(f"🌐 Request URL: {url}")
-            
-            response = requests.get(url, stream=True, timeout=30)
-            
-            print(f"📊 Response status: {response.status_code}")
+            response = requests.get(url, stream=True, timeout=30, headers=self.get_headers())
             
             if response.status_code == 404:
                 print("❌ Dataset not found (404)")
@@ -735,9 +767,7 @@ class MainWindow(QMainWindow):
             QMessageBox.information(
                 self, 
                 'Success', 
-                f'✅ PDF report downloaded successfully!\n\n' +
-                f'File size: {file_size:,} bytes ({file_size/1024:.2f} KB)\n\n' +
-                f'Saved to:\n{filepath}'
+                f'✅ PDF report downloaded successfully!\n\nSaved to:\n{filepath}'
             )
             
         except requests.exceptions.Timeout:

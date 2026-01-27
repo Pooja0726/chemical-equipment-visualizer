@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Bar, Pie } from 'react-chartjs-2';
-import ChartDataLabels from 'chartjs-plugin-datalabels'; // Needed for percentage labels
+import ChartDataLabels from 'chartjs-plugin-datalabels'; 
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,7 +13,6 @@ import {
   ArcElement,
 } from 'chart.js';
 
-// Register standard elements PLUS the datalabels plugin
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -25,7 +24,6 @@ ChartJS.register(
   ChartDataLabels
 );
 
-// MODIFIED: This now reads your Railway Variable or defaults to localhost for development
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 function App() {
@@ -34,14 +32,44 @@ function App() {
   const [selectedDatasetId, setSelectedDatasetId] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [uploading, setUploading] = useState(false);
+  
+  // Authentication States
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    const response = await fetch(`${API_BASE_URL}/login/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: email, password: password })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+    } else {
+      alert("Invalid Credentials");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setToken(null);
+    setCurrentDataset(null);
+  };
 
   useEffect(() => {
-    loadDatasets();
-  }, []);
+    if (token) {
+      loadDatasets();
+    }
+  }, [token]);
 
   const loadDatasets = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/datasets/`);
+      const response = await fetch(`${API_BASE_URL}/datasets/`, {
+        headers: { 'Authorization': `Token ${token}` }
+      });
       const data = await response.json();
       let datasetList = data.results || (Array.isArray(data) ? data : []);
       setDatasets(datasetList);
@@ -63,6 +91,7 @@ function App() {
 
       const response = await fetch(`${API_BASE_URL}/datasets/upload/`, {
         method: 'POST',
+        headers: { 'Authorization': `Token ${token}` },
         body: formData,
       });
 
@@ -92,7 +121,9 @@ function App() {
       return;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/datasets/${datasetId}/`);
+      const response = await fetch(`${API_BASE_URL}/datasets/${datasetId}/`, {
+        headers: { 'Authorization': `Token ${token}` }
+      });
       if (response.ok) {
         const data = await response.json();
         setCurrentDataset(data);
@@ -106,7 +137,9 @@ function App() {
   const handleDownloadPDF = async () => {
     if (!currentDataset) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/datasets/${currentDataset.id}/download_pdf/`);
+      const response = await fetch(`${API_BASE_URL}/datasets/${currentDataset.id}/download_pdf/`, {
+        headers: { 'Authorization': `Token ${token}` }
+      });
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -154,7 +187,6 @@ function App() {
     };
   };
 
-  // Base options for shared styling
   const baseChartOptions = {
     responsive: true,
     maintainAspectRatio: true,
@@ -169,7 +201,6 @@ function App() {
     },
   };
 
-  // Custom options for Bar Chart (Heading + Normal Values)
   const barOptions = {
     ...baseChartOptions,
     plugins: {
@@ -178,12 +209,11 @@ function App() {
       datalabels: {
         color: '#ffffff',
         font: { weight: 'bold', size: 14 },
-        formatter: (value) => value.toFixed(1), // Normal values
+        formatter: (value) => value.toFixed(1),
       }
     }
   };
 
-  // Custom options for Pie Chart (Heading + Percentages)
   const pieOptions = {
     ...baseChartOptions,
     plugins: {
@@ -202,6 +232,22 @@ function App() {
     }
   };
 
+  // Login View logic
+  if (!token) {
+    return (
+      <div className="login-container">
+          <div className="login-card">
+            <h2>🧪 Login to Chemical Visualizer</h2>
+            <p>Please enter your credentials to access the equipment dashboard.</p>
+            <input type="email" onChange={(e) => setEmail(e.target.value)} placeholder="Username (Email)" />
+            <input type="password" onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+            <button className="login-button" onClick={handleLogin}>Login</button>
+          </div>
+      </div>
+    );
+  }
+
+  // Main Application View
   return (
     <div className="app">
       <div className="sidebar">
@@ -209,6 +255,7 @@ function App() {
         <button className={`nav-button ${currentPage === 0 ? 'active' : ''}`} onClick={() => setCurrentPage(0)}>📤 Upload Dataset</button>
         <button className={`nav-button ${currentPage === 1 ? 'active' : ''}`} onClick={() => setCurrentPage(1)}>📊 Analyze Report</button>
         <button className={`nav-button ${currentPage === 2 ? 'active' : ''}`} onClick={() => setCurrentPage(2)}>📋 Equipment Report</button>
+        <button className="nav-button logout-button" onClick={handleLogout}>🚪 Logout</button>
         <div className="footer">Version 1.0<br />© 2026</div>
       </div>
 

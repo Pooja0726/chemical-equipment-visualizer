@@ -60,7 +60,7 @@ class LoginDialog(QDialog):
         self.email.setMinimumHeight(45)
         self.email.setStyleSheet('''
             QLineEdit {
-                padding: 14px 18px;
+                padding: 4px 18px;
                 border: 2px solid #d0e8f2;
                 border-radius: 8px;
                 font-size: 15px;
@@ -80,7 +80,7 @@ class LoginDialog(QDialog):
         self.password.setMinimumHeight(45)
         self.password.setStyleSheet('''
             QLineEdit {
-                padding: 14px 18px;
+                padding: 4px 18px;
                 border: 2px solid #d0e8f2;
                 border-radius: 8px;
                 font-size: 15px;
@@ -100,7 +100,7 @@ class LoginDialog(QDialog):
         self.confirm_password.setMinimumHeight(45)
         self.confirm_password.setStyleSheet('''
             QLineEdit {
-                padding: 14px 18px;
+                padding: 4px 18px;
                 border: 2px solid #d0e8f2;
                 border-radius: 8px;
                 font-size: 15px;

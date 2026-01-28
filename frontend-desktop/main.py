@@ -16,7 +16,7 @@ API_BASE_URL = 'https://chemical-equipment-visualizer-production-999d.up.railway
 class LoginDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Chemical Visualizer - Login")
+        self.setWindowTitle("Login")
         self.setFixedSize(500, 500)
         self.setModal(True)
         
@@ -48,7 +48,7 @@ class LoginDialog(QDialog):
         self.card_layout.setAlignment(Qt.AlignCenter)
         
         # Title
-        self.title = QLabel("Login to Chemical Visualizer")
+        self.title = QLabel("Login")
         self.title.setFont(QFont('Arial', 20, QFont.Bold))
         self.title.setAlignment(Qt.AlignCenter)
         self.title.setStyleSheet('color: #2c3e50; margin-bottom: 10px;')
@@ -143,7 +143,7 @@ class LoginDialog(QDialog):
         
         # Switch button (Login/Signup toggle)
         self.switch_btn = QPushButton("Don't have an account? Sign Up")
-        self.switch_btn.setMinimumHeight(40)
+        self.switch_btn.setMinimumHeight(50)
         self.switch_btn.setCursor(Qt.PointingHandCursor)
         self.switch_btn.setStyleSheet('''
             QPushButton {

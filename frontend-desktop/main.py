@@ -179,7 +179,7 @@ class LoginDialog(QDialog):
             self.action_btn.setText("SIGN UP")
             self.switch_btn.setText("Already have an account? Login")
         else:
-            self.title.setText("Login to Chemical Visualizer")
+            self.title.setText("Login")
             self.email.setPlaceholderText("Email")
             self.password.setPlaceholderText("Password")
             self.confirm_password.setVisible(False)

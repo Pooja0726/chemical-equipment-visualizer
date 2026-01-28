@@ -237,13 +237,22 @@ function App() {
   if (!token) {
     return (
       <div className="login-container">
-          <div className="login-card">
-            <h2>🧪 Login to Chemical Visualizer</h2>
-            <p>Please enter your credentials to access the equipment dashboard.</p>
-            <input type="email" onChange={(e) => setEmail(e.target.value)} placeholder="Username (Email)" />
-            <input type="password" onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-            <button className="login-button" onClick={handleLogin}>Login</button>
-          </div>
+        <div className="login-card">
+          <h2><strong>Login to Chemical Visualizer</strong></h2>
+          <input 
+            type="email" 
+            onChange={(e) => setEmail(e.target.value)} 
+            placeholder="Email" 
+          />
+          <input 
+            type="password" 
+            onChange={(e) => setPassword(e.target.value)} 
+            placeholder="Password" 
+          />
+          <button className="login-button" onClick={handleLogin}>
+            <strong>LOGIN</strong>
+          </button>
+        </div>
       </div>
     );
   }

@@ -16,34 +16,155 @@ API_BASE_URL = 'https://chemical-equipment-visualizer-production-999d.up.railway
 class LoginDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Login Required")
-        self.setFixedWidth(300)
-        layout = QVBoxLayout(self)
+        self.setWindowTitle("Chemical Visualizer - Login")
+        self.setFixedSize(500, 400)
+        self.setModal(True)
         
-        self.email = QLineEdit(self)
-        self.password = QLineEdit(self)
+        # Set background gradient
+        self.setStyleSheet('''
+            QDialog {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #e3f2fd, stop:1 #bbdefb);
+            }
+        ''')
+        
+        main_layout = QVBoxLayout(self)
+        main_layout.setAlignment(Qt.AlignCenter)
+        main_layout.setContentsMargins(50, 50, 50, 50)
+        
+        # Login card container
+        card = QFrame()
+        card.setStyleSheet('''
+            QFrame {
+                background: white;
+                border-radius: 16px;
+                padding: 40px;
+            }
+        ''')
+        card.setFixedWidth(400)
+        
+        card_layout = QVBoxLayout(card)
+        card_layout.setSpacing(20)
+        card_layout.setAlignment(Qt.AlignCenter)
+        
+        # Title
+        title = QLabel("Login to Chemical Visualizer")
+        title.setFont(QFont('Arial', 20, QFont.Bold))
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet('color: #2c3e50; margin-bottom: 10px;')
+        card_layout.addWidget(title)
+        
+        # Email input
+        self.email = QLineEdit()
+        self.email.setPlaceholderText("Email")
+        self.email.setMinimumHeight(45)
+        self.email.setStyleSheet('''
+            QLineEdit {
+                padding: 14px 18px;
+                border: 2px solid #d0e8f2;
+                border-radius: 8px;
+                font-size: 15px;
+                background: white;
+            }
+            QLineEdit:focus {
+                border: 2px solid #3498db;
+                outline: none;
+            }
+        ''')
+        card_layout.addWidget(self.email)
+        
+        # Password input
+        self.password = QLineEdit()
+        self.password.setPlaceholderText("Password")
         self.password.setEchoMode(QLineEdit.Password)
-        self.login_btn = QPushButton("Login", self)
-        self.login_btn.clicked.connect(self.do_login)
+        self.password.setMinimumHeight(45)
+        self.password.setStyleSheet('''
+            QLineEdit {
+                padding: 14px 18px;
+                border: 2px solid #d0e8f2;
+                border-radius: 8px;
+                font-size: 15px;
+                background: white;
+            }
+            QLineEdit:focus {
+                border: 2px solid #3498db;
+                outline: none;
+            }
+        ''')
+        self.password.returnPressed.connect(self.do_login)
+        card_layout.addWidget(self.password)
         
-        layout.addWidget(QLabel("Email:"))
-        layout.addWidget(self.email)
-        layout.addWidget(QLabel("Password:"))
-        layout.addWidget(self.password)
-        layout.addWidget(self.login_btn)
+        # Login button
+        self.login_btn = QPushButton("LOGIN")
+        self.login_btn.setFont(QFont('Arial', 12, QFont.Bold))
+        self.login_btn.setMinimumHeight(50)
+        self.login_btn.setCursor(Qt.PointingHandCursor)
+        self.login_btn.setStyleSheet('''
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #3498db, stop:1 #2980b9);
+                color: white;
+                padding: 14px;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #2980b9, stop:1 #1f5f8b);
+            }
+            QPushButton:pressed {
+                background: #1f5f8b;
+            }
+        ''')
+        self.login_btn.clicked.connect(self.do_login)
+        card_layout.addWidget(self.login_btn)
+        
+        main_layout.addWidget(card)
+        
         self.token = None
 
     def do_login(self):
+        email_text = self.email.text().strip()
+        password_text = self.password.text().strip()
+        
+        if not email_text or not password_text:
+            QMessageBox.warning(self, "Invalid Input", "Please enter both email and password.")
+            return
+        
+        self.login_btn.setEnabled(False)
+        self.login_btn.setText("Logging in...")
+        
         try:
-            resp = requests.post(f"{API_BASE_URL}/login/", 
-                                 data={'username': self.email.text(), 'password': self.password.text()})
+            resp = requests.post(
+                f"{API_BASE_URL}/login/", 
+                json={'username': email_text, 'password': password_text},
+                headers={'Content-Type': 'application/json'},
+                timeout=10
+            )
+            
             if resp.status_code == 200:
                 self.token = resp.json()['token']
                 self.accept()
             else:
-                QMessageBox.warning(self, "Error", "Invalid Login")
+                self.login_btn.setEnabled(True)
+                self.login_btn.setText("LOGIN")
+                QMessageBox.warning(self, "Login Failed", "Invalid email or password.\n\nPlease try again.")
+                
+        except requests.exceptions.Timeout:
+            self.login_btn.setEnabled(True)
+            self.login_btn.setText("LOGIN")
+            QMessageBox.critical(self, "Connection Error", "Request timed out.\n\nPlease check your internet connection.")
+        except requests.exceptions.ConnectionError:
+            self.login_btn.setEnabled(True)
+            self.login_btn.setText("LOGIN")
+            QMessageBox.critical(self, "Connection Error", "Could not connect to server.\n\nPlease check your internet connection.")
         except Exception as e:
-            QMessageBox.critical(self, "Connection Error", f"Could not connect to server: {str(e)}")
+            self.login_btn.setEnabled(True)
+            self.login_btn.setText("LOGIN")
+            QMessageBox.critical(self, "Error", f"An error occurred:\n\n{str(e)}")
+
 
 class ChartWidget(QWidget):
     """Widget for displaying matplotlib charts"""
@@ -246,6 +367,29 @@ class MainWindow(QMainWindow):
         
         sidebar_layout.addStretch()
         
+        # Add logout button
+        self.btn_logout = QPushButton('🚪 Logout')
+        self.btn_logout.setMinimumHeight(60)
+        self.btn_logout.setCursor(Qt.PointingHandCursor)
+        self.btn_logout.setStyleSheet('''
+            QPushButton {
+                background: transparent;
+                color: #e74c3c;
+                text-align: left;
+                padding: 15px 20px;
+                border: none;
+                border-left: 4px solid transparent;
+                font-size: 15px;
+                font-weight: 500;
+            }
+            QPushButton:hover {
+                background: rgba(231, 76, 60, 0.1);
+                border-left: 4px solid #e74c3c;
+            }
+        ''')
+        self.btn_logout.clicked.connect(self.logout)
+        sidebar_layout.addWidget(self.btn_logout)
+        
         footer = QLabel('Version 1.0\n© 2026')
         footer.setAlignment(Qt.AlignCenter)
         footer.setStyleSheet('color: #7f8c8d; font-size: 11px; padding: 20px;')
@@ -276,6 +420,24 @@ class MainWindow(QMainWindow):
         
         self.btn_upload.setChecked(True)
         self.stacked_widget.setCurrentIndex(0)
+    
+    def logout(self):
+        """Handle logout"""
+        reply = QMessageBox.question(
+            self,
+            'Logout',
+            'Are you sure you want to logout?',
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            self.close()
+            # Show login dialog again
+            login = LoginDialog()
+            if login.exec_() == QDialog.Accepted:
+                new_window = MainWindow(login.token)
+                new_window.show()
     
     def create_upload_page(self):
         """Create upload and select dataset page"""
@@ -310,6 +472,7 @@ class MainWindow(QMainWindow):
         
         self.upload_btn = QPushButton('📤 Choose CSV File')
         self.upload_btn.setMinimumHeight(55)
+        self.upload_btn.setCursor(Qt.PointingHandCursor)
         self.upload_btn.setStyleSheet('''
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
@@ -455,6 +618,7 @@ class MainWindow(QMainWindow):
         
         self.download_pdf_btn = QPushButton('📄 Download PDF Report')
         self.download_pdf_btn.setMinimumHeight(50)
+        self.download_pdf_btn.setCursor(Qt.PointingHandCursor)
         self.download_pdf_btn.setStyleSheet('''
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
@@ -806,9 +970,15 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
+    
+    # Show login dialog
+    login = LoginDialog()
+    if login.exec_() == QDialog.Accepted and login.token:
+        window = MainWindow(token=login.token)
+        window.show()
+        sys.exit(app.exec_())
+    else:
+        sys.exit(0)
 
 
 if __name__ == '__main__':

@@ -38,12 +38,6 @@ body {
   font-size: 28px;
   font-weight: bold;
   color: #2c3e50;
-  margin-bottom: 15px;
-}
-
-.login-card p {
-  color: #7f8c8d;
-  font-size: 14px;
   margin-bottom: 30px;
 }
 
@@ -81,6 +75,29 @@ body {
   background: linear-gradient(90deg, #2980b9 0%, #1f5f8b 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+}
+
+.switch-button {
+  width: 100%;
+  background: transparent;
+  color: #7f8c8d;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 15px;
+}
+
+.switch-button:hover {
+  color: #3498db;
+  background: rgba(52, 152, 219, 0.05);
+}
+
+.switch-button strong {
+  color: #3498db;
+  font-weight: 600;
 }
 
 /* ========== SIDEBAR ========== */
@@ -129,8 +146,24 @@ body {
   font-weight: bold;
 }
 
+/* Logout Button Specific Styling */
+.logout-button {
+  color: #e74c3c;
+  margin-top: 0;
+}
+
+.logout-button:hover {
+  background: rgba(231, 76, 60, 0.1);
+  border-left: 4px solid #e74c3c;
+  color: #e74c3c;
+}
+
+/* Sidebar spacer to push logout to bottom */
+.sidebar-spacer {
+  flex-grow: 1;
+}
+
 .footer {
-  margin-top: auto;
   color: #7f8c8d;
   font-size: 11px;
   text-align: center;
@@ -223,7 +256,7 @@ body {
 }
 
 .dataset-select {
-  flex: 1;
+  width: 100%;
   padding: 12px;
   border: 2px solid #d0e8f2;
   border-radius: 8px;

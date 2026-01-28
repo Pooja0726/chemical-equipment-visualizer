@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.http import FileResponse
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
@@ -11,16 +11,123 @@ from .utils import parse_csv_file, calculate_summary_stats, generate_pdf_report
 import io
 import traceback
 
+# ============= AUTHENTICATION VIEWS =============
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def signup(request):
+    """
+    Create a new user account
+    
+    Expected JSON payload:
+    {
+        "username": "user@example.com",
+        "email": "user@example.com",
+        "password": "securepassword123"
+    }
+    """
+    try:
+        username = request.data.get('username')
+        email = request.data.get('email')
+        password = request.data.get('password')
+        
+        # Validation
+        if not username or not password:
+            return Response(
+                {'error': 'Username and password are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if len(password) < 6:
+            return Response(
+                {'error': 'Password must be at least 6 characters long'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if user already exists
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {'error': 'Username already exists'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create user
+        user = User.objects.create_user(
+            username=username,
+            email=email or username,
+            password=password
+        )
+        
+        # Create token for the new user
+        token, created = Token.objects.get_or_create(user=user)
+        
+        return Response({
+            'message': 'User created successfully',
+            'username': user.username,
+            'token': token.key
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        return Response(
+            {'error': str(e)}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login(request):
+    """
+    Login user and return authentication token
+    
+    Expected JSON payload:
+    {
+        "username": "user@example.com",
+        "password": "securepassword123"
+    }
+    """
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    if not username or not password:
+        return Response(
+            {'error': 'Username and password are required'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    user = authenticate(username=username, password=password)
+    
+    if user is not None:
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.id,
+            'username': user.username
+        })
+    else:
+        return Response(
+            {'error': 'Invalid credentials'}, 
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+# ============= DATASET VIEWS =============
+
 class DatasetViewSet(viewsets.ModelViewSet):
     """ViewSet for managing datasets"""
     queryset = Dataset.objects.all()
-    permission_classes = [AllowAny]
+    
+    def get_permissions(self):
+        """
+        All dataset operations require authentication
+        """
+        return [IsAuthenticated()]
     
     def get_serializer_class(self):
         """
         Determines which serializer to use based on the action.
-        Using DatasetDetailSerializer for 'upload' bypasses the 400 error 
-        caused by missing 'filename' and 'row_count' in the request body.
         """
         if self.action in ['retrieve', 'upload']:
             return DatasetDetailSerializer
@@ -77,7 +184,6 @@ class DatasetViewSet(viewsets.ModelViewSet):
                 old.delete()
             
             # Step 4: Creating dataset in database
-            # Direct creation bypasses Serializer validation errors
             dataset = Dataset.objects.create(
                 filename=file.name,
                 row_count=len(df)

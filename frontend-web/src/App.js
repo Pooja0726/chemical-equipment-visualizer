@@ -24,7 +24,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://chemical-equipment-visualizer-production-999d.up.railway.app/api';
 
 function App() {
   const [datasets, setDatasets] = useState([]);
@@ -35,21 +35,74 @@ function App() {
   
   // Authentication States
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleSignup = async () => {
+    if (!email || !password || !confirmPassword) {
+      alert("Please fill in all fields");
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("Password must be at least 6 characters long");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/signup/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          username: email, 
+          password: password,
+          email: email 
+        })
+      });
+      
+      if (response.ok) {
+        alert("✅ Account created successfully! Please login with your credentials.");
+        setIsSignup(false);
+        setPassword('');
+        setConfirmPassword('');
+      } else {
+        const errorData = await response.json();
+        alert(`❌ Signup failed: ${errorData.error || 'Username already exists or invalid data'}`);
+      }
+    } catch (error) {
+      alert(`❌ Network error: ${error.message}`);
+    }
+  };
 
   const handleLogin = async () => {
-    const response = await fetch(`${API_BASE_URL}/login/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: email, password: password })
-    });
-    if (response.ok) {
-      const data = await response.json();
-      localStorage.setItem('token', data.token);
-      setToken(data.token);
-    } else {
-      alert("Invalid Credentials");
+    if (!email || !password) {
+      alert("Please enter both email and password");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password: password })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        setToken(data.token);
+      } else {
+        alert("Invalid Credentials");
+      }
+    } catch (error) {
+      alert(`❌ Network error: ${error.message}`);
     }
   };
 
@@ -57,6 +110,9 @@ function App() {
     localStorage.removeItem('token');
     setToken(null);
     setCurrentDataset(null);
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
   };
 
   useEffect(() => {
@@ -71,6 +127,14 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/datasets/`, {
         headers: { 'Authorization': `Token ${token}` }
       });
+      
+      if (response.status === 401) {
+        // Token is invalid, logout
+        handleLogout();
+        alert("Session expired. Please login again.");
+        return;
+      }
+      
       const data = await response.json();
       let datasetList = data.results || (Array.isArray(data) ? data : []);
       setDatasets(datasetList);
@@ -95,6 +159,12 @@ function App() {
         headers: { 'Authorization': `Token ${token}` },
         body: formData,
       });
+
+      if (response.status === 401) {
+        handleLogout();
+        alert("Session expired. Please login again.");
+        return;
+      }
 
       if (response.ok) {
         const data = await response.json();
@@ -125,6 +195,13 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/datasets/${datasetId}/`, {
         headers: { 'Authorization': `Token ${token}` }
       });
+      
+      if (response.status === 401) {
+        handleLogout();
+        alert("Session expired. Please login again.");
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         setCurrentDataset(data);
@@ -141,6 +218,13 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/datasets/${currentDataset.id}/download_pdf/`, {
         headers: { 'Authorization': `Token ${token}` }
       });
+      
+      if (response.status === 401) {
+        handleLogout();
+        alert("Session expired. Please login again.");
+        return;
+      }
+      
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -233,25 +317,70 @@ function App() {
     }
   };
 
-  // Login View logic
+  // Login/Signup View logic
   if (!token) {
     return (
       <div className="login-container">
         <div className="login-card">
-          <h2><strong>Login to Chemical Visualizer</strong></h2>
-          <input 
-            type="email" 
-            onChange={(e) => setEmail(e.target.value)} 
-            placeholder="Email" 
-          />
-          <input 
-            type="password" 
-            onChange={(e) => setPassword(e.target.value)} 
-            placeholder="Password" 
-          />
-          <button className="login-button" onClick={handleLogin}>
-            <strong>LOGIN</strong>
-          </button>
+          <h2><strong>{isSignup ? 'New User' : 'Login to Chemical Visualizer'}</strong></h2>
+          
+          {isSignup ? (
+            <>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)} 
+                placeholder="Email / Username" 
+              />
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)} 
+                placeholder="Set Password" 
+              />
+              <input 
+                type="password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)} 
+                placeholder="Type Password Again" 
+              />
+              <button className="login-button" onClick={handleSignup}>
+                <strong>SIGN UP</strong>
+              </button>
+              <button className="switch-button" onClick={() => {
+                setIsSignup(false);
+                setPassword('');
+                setConfirmPassword('');
+              }}>
+                Already have an account? <strong>Login</strong>
+              </button>
+            </>
+          ) : (
+            <>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)} 
+                placeholder="Email" 
+              />
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)} 
+                placeholder="Password" 
+              />
+              <button className="login-button" onClick={handleLogin}>
+                <strong>LOGIN</strong>
+              </button>
+              <button className="switch-button" onClick={() => {
+                setIsSignup(true);
+                setPassword('');
+                setConfirmPassword('');
+              }}>
+                Don't have an account? <strong>Sign Up</strong>
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
@@ -265,6 +394,7 @@ function App() {
         <button className={`nav-button ${currentPage === 0 ? 'active' : ''}`} onClick={() => setCurrentPage(0)}>📤 Upload Dataset</button>
         <button className={`nav-button ${currentPage === 1 ? 'active' : ''}`} onClick={() => setCurrentPage(1)}>📊 Analyze Report</button>
         <button className={`nav-button ${currentPage === 2 ? 'active' : ''}`} onClick={() => setCurrentPage(2)}>📋 Equipment Report</button>
+        <div className="sidebar-spacer"></div>
         <button className="nav-button logout-button" onClick={handleLogout}>🚪 Logout</button>
         <div className="footer">Version 1.0<br />© 2026</div>
       </div>

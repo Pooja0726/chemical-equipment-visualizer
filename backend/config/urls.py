@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.authtoken.views import obtain_auth_token # New import
+from equipment.views import signup, login
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('equipment.urls')),
-    # This creates the /api/login/ endpoint for your frontends
-    path('api/login/', obtain_auth_token, name='api_token_auth'), 
+    # Authentication endpoints
+    path('api/signup/', signup, name='api_signup'),
+    path('api/login/', login, name='api_login'),  # Use custom login, not obtain_auth_token
 ]

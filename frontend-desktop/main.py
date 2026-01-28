@@ -17,7 +17,7 @@ class LoginDialog(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Chemical Visualizer - Login")
-        self.setFixedSize(500, 400)
+        self.setFixedSize(500, 500)
         self.setModal(True)
         
         # Set background gradient
@@ -33,26 +33,26 @@ class LoginDialog(QDialog):
         main_layout.setContentsMargins(50, 50, 50, 50)
         
         # Login card container
-        card = QFrame()
-        card.setStyleSheet('''
+        self.card = QFrame()
+        self.card.setStyleSheet('''
             QFrame {
                 background: white;
                 border-radius: 16px;
                 padding: 40px;
             }
         ''')
-        card.setFixedWidth(400)
+        self.card.setFixedWidth(400)
         
-        card_layout = QVBoxLayout(card)
-        card_layout.setSpacing(20)
-        card_layout.setAlignment(Qt.AlignCenter)
+        self.card_layout = QVBoxLayout(self.card)
+        self.card_layout.setSpacing(20)
+        self.card_layout.setAlignment(Qt.AlignCenter)
         
         # Title
-        title = QLabel("Login to Chemical Visualizer")
-        title.setFont(QFont('Arial', 20, QFont.Bold))
-        title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet('color: #2c3e50; margin-bottom: 10px;')
-        card_layout.addWidget(title)
+        self.title = QLabel("Login to Chemical Visualizer")
+        self.title.setFont(QFont('Arial', 20, QFont.Bold))
+        self.title.setAlignment(Qt.AlignCenter)
+        self.title.setStyleSheet('color: #2c3e50; margin-bottom: 10px;')
+        self.card_layout.addWidget(self.title)
         
         # Email input
         self.email = QLineEdit()
@@ -71,7 +71,7 @@ class LoginDialog(QDialog):
                 outline: none;
             }
         ''')
-        card_layout.addWidget(self.email)
+        self.card_layout.addWidget(self.email)
         
         # Password input
         self.password = QLineEdit()
@@ -91,15 +91,35 @@ class LoginDialog(QDialog):
                 outline: none;
             }
         ''')
-        self.password.returnPressed.connect(self.do_login)
-        card_layout.addWidget(self.password)
+        self.card_layout.addWidget(self.password)
         
-        # Login button
-        self.login_btn = QPushButton("LOGIN")
-        self.login_btn.setFont(QFont('Arial', 12, QFont.Bold))
-        self.login_btn.setMinimumHeight(50)
-        self.login_btn.setCursor(Qt.PointingHandCursor)
-        self.login_btn.setStyleSheet('''
+        # Confirm password input (hidden by default)
+        self.confirm_password = QLineEdit()
+        self.confirm_password.setPlaceholderText("Type Password Again")
+        self.confirm_password.setEchoMode(QLineEdit.Password)
+        self.confirm_password.setMinimumHeight(45)
+        self.confirm_password.setStyleSheet('''
+            QLineEdit {
+                padding: 14px 18px;
+                border: 2px solid #d0e8f2;
+                border-radius: 8px;
+                font-size: 15px;
+                background: white;
+            }
+            QLineEdit:focus {
+                border: 2px solid #3498db;
+                outline: none;
+            }
+        ''')
+        self.confirm_password.setVisible(False)
+        self.card_layout.addWidget(self.confirm_password)
+        
+        # Login/Signup button
+        self.action_btn = QPushButton("LOGIN")
+        self.action_btn.setFont(QFont('Arial', 12, QFont.Bold))
+        self.action_btn.setMinimumHeight(50)
+        self.action_btn.setCursor(Qt.PointingHandCursor)
+        self.action_btn.setStyleSheet('''
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #3498db, stop:1 #2980b9);
@@ -118,14 +138,131 @@ class LoginDialog(QDialog):
                 background: #1f5f8b;
             }
         ''')
-        self.login_btn.clicked.connect(self.do_login)
-        card_layout.addWidget(self.login_btn)
+        self.action_btn.clicked.connect(self.handle_action)
+        self.card_layout.addWidget(self.action_btn)
         
-        main_layout.addWidget(card)
+        # Switch button (Login/Signup toggle)
+        self.switch_btn = QPushButton("Don't have an account? Sign Up")
+        self.switch_btn.setMinimumHeight(40)
+        self.switch_btn.setCursor(Qt.PointingHandCursor)
+        self.switch_btn.setStyleSheet('''
+            QPushButton {
+                background: transparent;
+                color: #7f8c8d;
+                padding: 12px;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                color: #3498db;
+                background: rgba(52, 152, 219, 0.05);
+            }
+        ''')
+        self.switch_btn.clicked.connect(self.toggle_mode)
+        self.card_layout.addWidget(self.switch_btn)
+        
+        main_layout.addWidget(self.card)
         
         self.token = None
+        self.is_signup_mode = False
+
+    def toggle_mode(self):
+        """Toggle between login and signup mode"""
+        self.is_signup_mode = not self.is_signup_mode
+        
+        if self.is_signup_mode:
+            self.title.setText("New User")
+            self.email.setPlaceholderText("Email / Username")
+            self.password.setPlaceholderText("Set Password")
+            self.confirm_password.setVisible(True)
+            self.action_btn.setText("SIGN UP")
+            self.switch_btn.setText("Already have an account? Login")
+        else:
+            self.title.setText("Login to Chemical Visualizer")
+            self.email.setPlaceholderText("Email")
+            self.password.setPlaceholderText("Password")
+            self.confirm_password.setVisible(False)
+            self.action_btn.setText("LOGIN")
+            self.switch_btn.setText("Don't have an account? Sign Up")
+        
+        # Clear fields
+        self.password.clear()
+        self.confirm_password.clear()
+
+    def handle_action(self):
+        """Handle login or signup based on current mode"""
+        if self.is_signup_mode:
+            self.do_signup()
+        else:
+            self.do_login()
+
+    def do_signup(self):
+        """Handle signup"""
+        email_text = self.email.text().strip()
+        password_text = self.password.text().strip()
+        confirm_text = self.confirm_password.text().strip()
+        
+        if not email_text or not password_text or not confirm_text:
+            QMessageBox.warning(self, "Invalid Input", "Please fill in all fields.")
+            return
+        
+        if password_text != confirm_text:
+            QMessageBox.warning(self, "Password Mismatch", "Passwords do not match!")
+            return
+        
+        if len(password_text) < 6:
+            QMessageBox.warning(self, "Weak Password", "Password must be at least 6 characters long.")
+            return
+        
+        self.action_btn.setEnabled(False)
+        self.action_btn.setText("Creating Account...")
+        
+        try:
+            resp = requests.post(
+                f"{API_BASE_URL}/signup/", 
+                json={
+                    'username': email_text, 
+                    'password': password_text,
+                    'email': email_text
+                },
+                headers={'Content-Type': 'application/json'},
+                timeout=10
+            )
+            
+            if resp.status_code == 201 or resp.status_code == 200:
+                QMessageBox.information(
+                    self, 
+                    "Success", 
+                    "✅ Account created successfully!\n\nPlease login with your credentials."
+                )
+                self.toggle_mode()  # Switch back to login mode
+            else:
+                error_data = resp.json()
+                QMessageBox.warning(
+                    self, 
+                    "Signup Failed", 
+                    f"❌ {error_data.get('error', 'Username already exists or invalid data')}"
+                )
+            
+            self.action_btn.setEnabled(True)
+            self.action_btn.setText("SIGN UP")
+                
+        except requests.exceptions.Timeout:
+            self.action_btn.setEnabled(True)
+            self.action_btn.setText("SIGN UP")
+            QMessageBox.critical(self, "Connection Error", "Request timed out.\n\nPlease check your internet connection.")
+        except requests.exceptions.ConnectionError:
+            self.action_btn.setEnabled(True)
+            self.action_btn.setText("SIGN UP")
+            QMessageBox.critical(self, "Connection Error", "Could not connect to server.\n\nPlease check your internet connection.")
+        except Exception as e:
+            self.action_btn.setEnabled(True)
+            self.action_btn.setText("SIGN UP")
+            QMessageBox.critical(self, "Error", f"An error occurred:\n\n{str(e)}")
 
     def do_login(self):
+        """Handle login"""
         email_text = self.email.text().strip()
         password_text = self.password.text().strip()
         
@@ -133,8 +270,8 @@ class LoginDialog(QDialog):
             QMessageBox.warning(self, "Invalid Input", "Please enter both email and password.")
             return
         
-        self.login_btn.setEnabled(False)
-        self.login_btn.setText("Logging in...")
+        self.action_btn.setEnabled(False)
+        self.action_btn.setText("Logging in...")
         
         try:
             resp = requests.post(
@@ -148,21 +285,21 @@ class LoginDialog(QDialog):
                 self.token = resp.json()['token']
                 self.accept()
             else:
-                self.login_btn.setEnabled(True)
-                self.login_btn.setText("LOGIN")
+                self.action_btn.setEnabled(True)
+                self.action_btn.setText("LOGIN")
                 QMessageBox.warning(self, "Login Failed", "Invalid email or password.\n\nPlease try again.")
                 
         except requests.exceptions.Timeout:
-            self.login_btn.setEnabled(True)
-            self.login_btn.setText("LOGIN")
+            self.action_btn.setEnabled(True)
+            self.action_btn.setText("LOGIN")
             QMessageBox.critical(self, "Connection Error", "Request timed out.\n\nPlease check your internet connection.")
         except requests.exceptions.ConnectionError:
-            self.login_btn.setEnabled(True)
-            self.login_btn.setText("LOGIN")
+            self.action_btn.setEnabled(True)
+            self.action_btn.setText("LOGIN")
             QMessageBox.critical(self, "Connection Error", "Could not connect to server.\n\nPlease check your internet connection.")
         except Exception as e:
-            self.login_btn.setEnabled(True)
-            self.login_btn.setText("LOGIN")
+            self.action_btn.setEnabled(True)
+            self.action_btn.setText("LOGIN")
             QMessageBox.critical(self, "Error", f"An error occurred:\n\n{str(e)}")
 
 
@@ -297,7 +434,7 @@ class StatCard(QFrame):
 class MainWindow(QMainWindow):
     def __init__(self, token):
         super().__init__()
-        self.token = token # Store the auth token
+        self.token = token  # Store the auth token
         self.datasets = []
         self.current_dataset = None
         self.init_ui()
@@ -708,7 +845,11 @@ class MainWindow(QMainWindow):
     def load_datasets(self):
         """Load datasets from API"""
         try:
-            response = requests.get(f'{API_BASE_URL}/datasets/', headers=self.get_headers())
+            response = requests.get(
+                f'{API_BASE_URL}/datasets/', 
+                headers=self.get_headers(),
+                timeout=10
+            )
             response.raise_for_status()
             data = response.json()
             
@@ -734,6 +875,13 @@ class MainWindow(QMainWindow):
             
             self.dataset_combo.blockSignals(False)
             
+        except requests.exceptions.Timeout:
+            QMessageBox.critical(self, "Connection Error", "Request timed out while loading datasets.")
+            self.dataset_combo.blockSignals(True)
+            self.dataset_combo.clear()
+            self.current_dataset = None
+            self.dataset_combo.addItem("Connection timeout", None)
+            self.dataset_combo.blockSignals(False)
         except Exception as e:
             print(f"Error loading datasets: {str(e)}")
             self.dataset_combo.blockSignals(True)
@@ -760,8 +908,13 @@ class MainWindow(QMainWindow):
         try:
             with open(filepath, 'rb') as f:
                 file_content = f.read()
-                files = {'file': (filepath.split('\\')[-1], file_content, 'text/csv')}
-                response = requests.post(f'{API_BASE_URL}/datasets/upload/', files=files, headers=self.get_headers())
+                files = {'file': (filepath.split('\\')[-1].split('/')[-1], file_content, 'text/csv')}
+                response = requests.post(
+                    f'{API_BASE_URL}/datasets/upload/', 
+                    files=files, 
+                    headers=self.get_headers(),
+                    timeout=30
+                )
                 
                 if response.status_code == 201:
                     data = response.json()
@@ -781,6 +934,10 @@ class MainWindow(QMainWindow):
                     error_msg = response.json().get('error', 'Unknown error')
                     raise Exception(error_msg)
                     
+        except requests.exceptions.Timeout:
+            self.upload_btn.setEnabled(True)
+            self.upload_btn.setText('📤 Choose CSV File')
+            QMessageBox.critical(self, 'Upload Failed', '❌ Request timed out. Please try again.')
         except Exception as e:
             self.upload_btn.setEnabled(True)
             self.upload_btn.setText('📤 Choose CSV File')
@@ -798,7 +955,11 @@ class MainWindow(QMainWindow):
             return
         
         try:
-            response = requests.get(f'{API_BASE_URL}/datasets/{dataset_id}/', headers=self.get_headers())
+            response = requests.get(
+                f'{API_BASE_URL}/datasets/{dataset_id}/', 
+                headers=self.get_headers(),
+                timeout=10
+            )
             
             if response.status_code == 404:
                 QMessageBox.warning(
@@ -817,6 +978,9 @@ class MainWindow(QMainWindow):
             
         except requests.exceptions.HTTPError as e:
             QMessageBox.warning(self, 'Error', f'❌ HTTP Error: {e.response.status_code}')
+            self.current_dataset = None
+        except requests.exceptions.Timeout:
+            QMessageBox.critical(self, 'Error', '❌ Request timed out.')
             self.current_dataset = None
         except Exception as e:
             QMessageBox.warning(self, 'Error', f'❌ Failed to load dataset: {str(e)}')
@@ -942,14 +1106,11 @@ class MainWindow(QMainWindow):
                 '❌ Request timed out after 30 seconds.\n\nPlease check your connection and try again.'
             )
         except requests.exceptions.ConnectionError:
-            print("❌ Connection error - Backend not running")
+            print("❌ Connection error")
             QMessageBox.critical(
                 self, 
                 'Connection Error', 
-                '❌ Cannot connect to backend server.\n\n' +
-                'Make sure Django server is running:\n' +
-                'cd backend\n' +
-                'python manage.py runserver'
+                '❌ Cannot connect to backend server.\n\nPlease check your internet connection.'
             )
         except requests.exceptions.HTTPError as e:
             print(f"❌ HTTP Error: {e}")
